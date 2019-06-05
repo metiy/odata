@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>country test</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				font-family: Monospace;
+				background-color: #000;
+				color: #fff;
+				margin: 0px;
+				overflow: hidden;
+			}
+			#country_name {
+				color: #ff0000;
+				position: absolute;
+				top: 10px;
+				width: 100%;
+				text-align: center;
+				z-index: 100;
+				display:block;
+			}
+			#info {
+				color: #fff;
+				position: absolute;
+				top: 10px;
+				width: 100%;
+				text-align: center;
+				z-index: 100;
+				display:block;
+			}
+			#info a {
+				color: #f00;
+				font-weight: bold;
+			}
+		</style>
+		<link href="ui_style.css" type="text/css" rel="stylesheet"/>
+	</head>
+
+	<body>
+		<div align='center'>
+
+		<div id='sky_box'></div>
+
+		<div id="country_name"></div>
+
+		<div style='position:absolute;top="10px";' align='right' id='info'>
+	        	<div id="rightbox">Info</div>
+		</div></div>
+
+
+		<script src="js/jquery-3.4.0.min.js"></script>
+		<script src="js/three.js"></script>
+		<script src="js/utils/SceneUtils.js"></script>
+		<script src="js/libs/inflate.min.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+		<script src="js/libs/tween.min.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
+		<script src="js/loaders/GLTFLoader.js"></script>
+
+
+		<script>
+		var raycaster = new THREE.Raycaster();
+		var mouse     = new THREE.Vector2();
+		var world     = null
+		var old_is    = null
+
+		var cname     = document.getElementById( 'country_name' );
+
+		var container, stats, controls;
+		var camera, scene, renderer;
+
+		function onWindowResize() {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+
+			renderer.setSize( window.innerWidth, window.innerHeight );
+		}
+
+		function init() {
+			container = document.getElementById( 'sky_box' );
+
+			// scene
+			scene = new THREE.Scene();
+			scene.background = new THREE.Color( 0xa0a0a0 );
+
+			fog_color = 0xa0a0a0
+			scene.fog = new THREE.Fog( fog_color , 200, 800 );
+
+			// stats
+			stats                           = new Stats();
+			stats.dom.id                    = 'stats'
+			stats.domElement.style.position = 'absolute';
+			stats.domElement.style.left     = null;
+			stats.domElement.style.right    = '0px';
+			stats.domElement.style.top      = '0px';
+			container.appendChild( stats.dom );
+
+
+			// camera
+			camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 2000 );
+			cx = 0
+			cy = 64
+			cz = 50
+			camera.position.set( cx, cy, cz );
+
+
+			// renderer
+			renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true});
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.shadowMap.enabled = true;
+			renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+			container.appendChild( renderer.domElement );
+
+			// control
+			controls = new THREE.OrbitControls( camera , renderer.domElement);
+			controls.target.set( 0, 0, 0 );
+			controls.update();
+
+
+			// light 1
+			light1 = new THREE.HemisphereLight( 0xffffff, 0x444444 );
+			light1.position.set( 0, 200, 0 );
+			scene.add( light1 );
+
+			// light 2
+			light = new THREE.DirectionalLight( 0xffffff );
+			light.position.set( 100,300, 200 );
+			light.castShadow           = true;
+			light.shadow.camera.top    = 180;
+			light.shadow.camera.bottom = -100;
+			light.shadow.camera.left   = -120;
+			light.shadow.camera.right  = 120;
+			scene.add( light );
+
+
+
+			// ground
+			ground_color = 0x999999
+			var mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 2000, 2000 ), new THREE.MeshPhongMaterial( { color: ground_color, depthWrite: false } ) );
+			mesh.name          = "ground";
+			mesh.rotation.x    = - Math.PI / 2;
+			mesh.receiveShadow = true;
+			mesh.position.set( 0, -0.1, 0 );
+			scene.add( mesh );
+
+
+			// grid
+			var gridHelper = new THREE.GridHelper( 72 , 24 , 0x303030, 0x303030 );
+			gridHelper.name                 = "grid";
+			gridHelper.material.opacity     = 0.1;
+			gridHelper.material.transparent = true;
+			gridHelper.position.set( 0, -0.1, 0 );
+			scene.add( gridHelper );
+
+			window.addEventListener( 'resize', onWindowResize );
+			window.addEventListener( 'mousemove', onMouseMove, false );
+
+			// Instantiate a loader
+			var loader = new THREE.GLTFLoader();
+
+			// Load a glTF resource
+			loader.load(
+				// resource URL
+				'https://metiy.github.io/odata/world-map.gltf',
+				// called when the resource is loaded
+				function ( gltf ) {
+
+					scene.add( gltf.scene );
+					world = gltf.scene.children[0].children
+				},
+				// called while loading is progressing
+				function ( xhr ) {
+
+					console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+				},
+				// called when loading has errors
+				function ( error ) {
+
+					console.log( 'An error happened' );
+
+				}
+			);
+		}
+
+		function animate() {
+			requestAnimationFrame( animate );
+
+			stats.update();
+
+			renderer.render( scene, camera );
+		}
+
+		function onMouseMove( event ) {
+			if (world == null) return 
+			// calculate mouse position in normalized device coordinates
+			// (-1 to +1) for both components
+
+			mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+			mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+			// update the picking ray with the camera and mouse position
+			raycaster.setFromCamera( mouse, camera );
+
+			// calculate objects intersecting the picking ray
+			var intersects = raycaster.intersectObjects( world );
+
+			if (intersects.length > 0) {
+				if ( old_is != intersects[0].object ){
+					if(old_is != null){
+						old_is.scale.set(1,1,1)
+					}
+
+					old_is = intersects[0].object 
+					old_is.scale.set(1,1,2)
+					cname.innerText = old_is.name
+				}
+			}else{
+				if( old_is != null ){
+					old_is.scale.set(1,1,1)
+					cname.innerText = ""
+				}
+				old_is = null
+			}
+		}
+
+		init();
+		animate();
+
+		</script>
+	</body>
+</html>
+
+
