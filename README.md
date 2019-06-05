@@ -2,4 +2,6 @@
 
 pages https://metiy.github.io/odata/
 
-free cdn http://www.jq22.com/cdn/
+cdn http://www.jq22.com/cdn/
+
+cdn  https://www.bootcdn.cn/three.js/
