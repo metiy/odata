@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>info test</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+    body {
+      font-family: Monospace;
+      background-color: #000;
+      color: #fff;
+      margin: 0px;
+      overflow: hidden;
+    }
+    #info {
+      color: #fff;
+      position: absolute;
+      top: 10px;
+      width: 100%;
+      text-align: center;
+      z-index: 100;
+      display:block;
+    }
+  </style>
+  </head>
+
+  <body>
+    <div align='center'>
+
+    <div id='sky_box'></div>
+
+    <div style='position:absolute;top="10px";' align='right' id='info'>
+      <div id="rightbox">Info</div>
+    </div></div>
+
+    <script src="js/jquery-3.4.0.min.js"></script>
+
+    <script>
+
+    messages = []
+    function on_msg(evt) { 
+      var received_msg = evt.data;
+      //console.log(evt.data)
+      messages.push(evt.data)
+
+      // $('#rightbox')
+    }
+
+    </script>
+	</body>
+</html>
+
