@@ -1,0 +1,17 @@
+body{
+	background-color:#000;
+}
+.box_title{}
+#rightbox{
+	padding:4px;
+	position:fixed; 
+	right:20px;top:20px; 
+	width:200px; 
+	height:380px;
+	border:1px solid #bbb; border-radius: 9px;
+	background-image:url(infobox.png);
+	background-repeat:no-repeat;
+}
+#stats{
+	top:79px;
+}
